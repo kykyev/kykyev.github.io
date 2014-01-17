@@ -1,0 +1,21 @@
+@import "compass/css3/box-sizing";
+@import "css-grids/grid-yui/main";
+@import "css-grids/width";
+
+$bp_spec: (palm 600px) (tablet 840px);
+
+
+*, *:after, *:before {
+  @include box-sizing(border-box);
+}
+
+@include css-grids-yui($gutters: 8px 8px);
+@include css-grids-widths();
+
+@include respond_to($bp_spec, palm) {
+  @include css-grids-widths(palm);
+}
+
+@include respond_to($bp_spec, tablet) {
+  @include css-grids-widths(tablet);
+}

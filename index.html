@@ -1,0 +1,19 @@
+---
+layout: default
+title: Your New Jekyll Site
+---
+
+<div class="grid-yui">
+    {% comment %}
+        Weird HTML comments are necessary for YUI grid.
+    {% endcomment %}
+    <!--
+{% for post in site.posts %}
+ --><div class="post-excerpt grid-yui__item width-1 width-palm-1-2 width-tablet-1-3">
+        <span class="post-excerpt__date">{{ post.date | date_to_string }}</span>
+        <a class="post-excerpt__title" href="{{ post.url }}">{{ post.title }}</a>
+    </div><!--
+{% endfor %}
+    -->
+</div>
+
