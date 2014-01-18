@@ -1,6 +1,11 @@
 name: Your New Jekyll Site
 markdown: redcarpet
 pygments: true
-source: release
-layouts: _layouts
+destination: _site.resease
+exclude: [
+  dev,
+  node_modules,
+  Gruntfile.js,
+  package.json
+]
 

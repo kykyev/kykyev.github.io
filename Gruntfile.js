@@ -4,15 +4,12 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         // tasks
         clean: {
-            release: ['release', '_site']
+            release: ['css/', '_layouts/', '_site.release']
         },
         compass: {
             dev: {
-                options: {}
-            },
-            dist: {
                 options: {
-                    environment: 'production'
+                    basePath: 'dev'
                 }
             }
         },
@@ -28,24 +25,23 @@ module.exports = function(grunt) {
         copy: {
             cssDev: {
                 files: [
-                    {src: ['css/**'], dest: '_site/'}
-                ]
-            },
-            release: {
-                files: [
-                    {src: ['css/**'], dest: 'release/'},
-                    {src: ['_layouts/**'], dest: 'release/'},
-                    {src: ['index.html'], dest: 'release/'},
-                    {src: ['_posts/**'], dest: 'release/'}
+                    {
+                        src: ['dev/css/main.css'],
+                        dest: '_site/css/main.css'
+                    }
                 ]
             }
         },
         filerev: {
             cssRelease: {
-                src: ['release/css/main.css']
+                src: ['css/main.css']
             }
         },
         shell: {
+            copyRelease: {
+                command: 'cp -r dev/css .; cp -r dev/_layouts .; cp dev/index.html .',
+                stdout: true
+            },
             jekyllBuildDev: {
                 command: 'jekyll build --config _config.dev.yml',
                 stdout: true
@@ -56,32 +52,32 @@ module.exports = function(grunt) {
             }
         },
         usemin: {
-            html: ['release/_layouts/default.html'],
+            html: ['_layouts/default.html'],
             options: {
-                assetsDirs: ['release']
+                assetsDirs: ['.']
             }
         },
         'useminPrepare': {
             html: '_layouts/default.html',
             options: {
-                dest: 'release',
+                dest: '.',
                 root: '.'
             }
         },
         watch: {
             sass: {
-                files: 'sass/*.scss',
+                files: 'dev/sass/**/*.scss',
                 tasks: ['compass:dev']
             },
             css: {
-                files: 'css/**/*.css',
+                files: 'dev/css/**/*.css',
                 tasks: ['copy:cssDev'],
                 options: {
                     livereload: true
                 }
             },
             jekyllSource: {
-                files: ['_layouts/**', '_posts/**', '*.html', '_config.yml'],
+                files: ['dev/**/*.html', '_posts/**', '_config.yml'],
                 tasks: ['shell:jekyllBuildDev'],
                 options: {
                     livereload: true
@@ -104,7 +100,7 @@ module.exports = function(grunt) {
     grunt.registerTask('develop', ['connect', 'watch']);
     grunt.registerTask('release', [
         'clean:release',
-        'copy:release',
+        'shell:copyRelease',
         'useminPrepare',
         'concat',
         'cssmin',

@@ -1,10 +1,9 @@
 name: Your New Jekyll Site
 markdown: redcarpet
 pygments: true
+source: dev
+destination: _site.dev
 exclude: [
   config.rb,
-  Gruntfile.js,
-  node_modules,
-  package.json,
   sass
 ]
