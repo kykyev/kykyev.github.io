@@ -47,11 +47,11 @@ module.exports = function(grunt) {
         },
         shell: {
             jekyllBuildDev: {
-                command: 'jekyll build',
+                command: 'jekyll build --config _config.dev.yml',
                 stdout: true
             },
             jekyllBuildRelease: {
-                command: 'jekyll build --config _config.release.yml',
+                command: 'jekyll build',
                 stdout: true
             }
         },
