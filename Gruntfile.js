@@ -17,7 +17,7 @@ module.exports = function(grunt) {
             server: {
                 options: {
                     port: 5000,
-                    base: '_site/',
+                    base: '_site.dev/',
                     livereload: true
                 }
             }
@@ -97,7 +97,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-usemin');
 
-    grunt.registerTask('develop', ['connect', 'watch']);
+    grunt.registerTask('develop', [
+        'shell:jekyllBuildDev',
+        'connect',
+        'watch'
+    ]);
     grunt.registerTask('release', [
         'clean:release',
         'shell:copyRelease',
