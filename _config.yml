@@ -3,3 +3,4 @@ markdown: redcarpet
 pygments: true
 source: release
 layouts: _layouts
+exclude: [_posts]
