@@ -2,7 +2,7 @@ _site
 _site.dev
 _site.release
 node_modules
-dev/css
+dev/assets/css
 .idea
 .sass-cache
 .tmp

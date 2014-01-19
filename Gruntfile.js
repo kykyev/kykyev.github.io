@@ -26,20 +26,20 @@ module.exports = function(grunt) {
             cssDev: {
                 files: [
                     {
-                        src: ['dev/css/main.css'],
-                        dest: '_site.dev/css/main.css'
+                        src: ['dev/assets/css/main.css'],
+                        dest: '_site.dev/assets/css/main.css'
                     }
                 ]
             }
         },
         filerev: {
             cssRelease: {
-                src: ['css/main.css']
+                src: ['assets/css/main.css']
             }
         },
         shell: {
             copyRelease: {
-                command: 'cp -r dev/css .; cp -r dev/_layouts .; cp dev/index.html .',
+                command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .; cp dev/index.html .',
                 stdout: true
             },
             jekyllBuildDev: {
@@ -70,7 +70,7 @@ module.exports = function(grunt) {
                 tasks: ['compass:dev']
             },
             css: {
-                files: 'dev/css/**/*.css',
+                files: 'dev/assets/css/**/*.css',
                 tasks: ['copy:cssDev'],
                 options: {
                     livereload: true

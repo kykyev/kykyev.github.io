@@ -11,7 +11,9 @@ title: Your New Jekyll Site
 {% for post in site.posts %}
  --><div class="post-excerpt grid-yui__item width-1 width-palm-1-2 width-tablet-1-3">
         <span class="post-excerpt__date">{{ post.date | date_to_string }}</span>
-        <a class="post-excerpt__title" href="{{ post.url }}">{{ post.title }}</a>
+        <h2>
+            <a class="post-excerpt__title" href="{{ post.url }}">{{ post.title }}</a>
+        </h2>
     </div><!--
 {% endfor %}
     -->
