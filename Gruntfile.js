@@ -4,7 +4,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         // tasks
         clean: {
-            release: ['css/', '_layouts/', '_site.release']
+            release: ['assets/css/', '_layouts/', '_site.release']
         },
         compass: {
             dev: {
@@ -83,6 +83,19 @@ module.exports = function(grunt) {
                     livereload: true
                 }
             }
+        },
+        webfont: {
+            icons: {
+                src: 'dev/svg/*.svg',
+                dest: 'dev/sass/modules/',
+                options: {
+                    types: 'woff',
+                    embed: true,
+                    destHtml: 'dev/',
+                    ligatures: true,
+                    stylesheet: 'scss'
+                }
+            }
         }
     });
 
@@ -96,6 +109,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-filerev');
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-usemin');
+    grunt.loadNpmTasks('grunt-webfont');
 
     grunt.registerTask('develop', [
         'shell:jekyllBuildDev',
