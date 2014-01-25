@@ -45,7 +45,7 @@ function createInternalInjector(cache, factory) {
     };
 }
 ```
-Actually we need two these objects - one for providers, second for services. Both are created in `createInjector` method that is accesible via `angular.injector`. Angular don't expose providerInjector, so a little trick is needed: alter code to expose neccessary things via global `agent007` object. Now after invoking `angular.injector()` global object `agent007`  we will have everything that is needed. 
+Actually we need two these objects - one for providers, second for services. Both are created in `createInjector` method that is accesible via `angular.injector`. Angular don't expose providerInjector, so a little trick is needed: alter code to expose neccessary things via global `agent007` object. Now after invoking `angular.injector()` global object `agent007`  we will have everything that is needed.
 
 ```javascript
 function createInjector(modulesToLoad) {
