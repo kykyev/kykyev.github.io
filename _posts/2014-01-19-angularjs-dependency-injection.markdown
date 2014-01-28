@@ -1,18 +1,18 @@
 ---
 layout: post
 title:  "Angular.js dependency injection"
-date:   2019-01-19 22:48:00
+date:   2014-01-19 22:48:00
 ---
 
-Say, for some reason we do not want use `console` directly and instead use wrapping `$shell` service.
+Say, for some reason we do not want use `window.console` directly and instead use wrapping `$shell` service.
 
 ```javascript
-var Foo = function($shell) {
+var sayHello = function($shell) {
     $shell.log('Hello');
 };
 ```
 
-Each service has it's own provider. Provider is a constructor function (well, not always) that produce object with `$get` method. Later one must be either constructor function or simply a function returning object that represents service. For inctance:
+Each service has it's own provider. Provider is a constructor function (well, [not always [1]](#note1)) that produces object with `$get` factory method. Later one must be either constructor function or simply a function returning object that represents service. Here is a provider for `$shell` service. Anywhere `$shell` is demanded, object returned by `$get` will be injected.
 
 ```javascript
 var ShellProviderFn = function() {
@@ -35,7 +35,6 @@ function createInternalInjector(cache, factory) {
     function invoke(fn, self, locals) {...}
     function instantiate(Type, locals) {...}
     function has(name) {...}
-
     return {
         invoke: invoke,
         instantiate: instantiate,
@@ -45,7 +44,7 @@ function createInternalInjector(cache, factory) {
     };
 }
 ```
-Actually we need two these objects - one for providers, second for services. Both are created in `createInjector` method that is accesible via `angular.injector`. Angular don't expose providerInjector, so a little trick is needed: alter code to expose neccessary things via global `agent007` object. Now after invoking `angular.injector()` global object `agent007`  we will have everything that is needed.
+Actually we need two these objects - one for providers, second for services. Both are created in `createInjector` method that is accesible via `angular.injector`. Angular don't expose `providerInjector`, so a little trick is needed: altering source code to expose neccessary things via global `agent007` object. Now after invoking `angular.injector()` global object `agent007`  we will have everything that is needed.
 
 ```javascript
 function createInjector(modulesToLoad) {
@@ -66,7 +65,7 @@ function createInjector(modulesToLoad) {
 }
 ```
 
-First provider for `$shell` service should be registrated.
+Firstly provider for `$shell` service should be registrated.
 
 ```javascript
 providerInjector.invoke(function($provide) {
@@ -74,7 +73,7 @@ providerInjector.invoke(function($provide) {
 });
 ```
 
-Here we see DI in action: function is invoked and parameter `$provide` is taken seemingly out of nowhere. DI mechanics will be reviewed later, for now we may observe that in `createInjector` function `providerCache` is prepopulated with a `$provide` object, so provider injector knows about it.
+Here we see DI in action: function is invoked and parameter `$provide` is taken seemingly out of nowhere. DI mechanics will be reviewed later, for now we may observe that in `createInjector` function `providerCache` is prepopulated with a `$provide` object, so provider injector already knows about it.
 
 ```javascript
 providerCache = {
@@ -89,7 +88,7 @@ providerCache = {
       }
 ```
 
-Method  `$provide.provider` registrates given provider - instantiates it and populates cache, so next time when this provider is needed it is not instantiated again but is just taken out of the cache. That's why provider is effectively a singleton object.
+Method  `$provide.provider` is in charge of registrating given provider - instantiates it and populates cache, so next time when this provider is needed it is not instantiated again but is just taken out of the cache. That's why provider is effectively a singleton object.
 
 ```javascript
 function provider(name, provider_) {
@@ -103,7 +102,7 @@ function provider(name, provider_) {
   }
 ```
 
-After registrating provider for `$shell` service everything isset up to use it. Notice that this time service injector is used.
+After registrating provider for `$shell` service everything is set up to use it. Notice that this time service injector `instanceInjector` is used.
 
 ```javascript
 var Foo = function($shell) {
@@ -126,7 +125,7 @@ function invoke(fn, self, locals){
 }
 ```
 
-`annotate` takes either function or array like `["$shell", function(shell) {...}]` and parses it to extract names for parameters. `getService` is another method of injector that lookups for a service. Idea is simple: first lookup in cache, if it does not contained service then instantiate it and populate cache. The rest of code is to detect circular dependencies.
+`annotate` takes either function or array like `["$shell", function(shell) {...}]` and parses it to extract names for parameters. `getService` is another method of injector that lookups for a service. Idea is simple: first lookup in cache, if it does not contain service then instantiate it and populate cache. The rest of code is to detect circular dependencies.
 
 ```javascript
 function getService(serviceName) {
@@ -170,6 +169,20 @@ function(servicename) {
         return instanceInjector.invoke(provider.$get, provider);
 }
 ```
-it tries to find provider for a given service. As mentioned above `$get` method of provider is responsible for service instantiation. Service injector invokes `$get` method, and if that dependes on another services than they are recursevly resolved.
+it tries to find provider for a given service. As mentioned above `$get` method of provider is responsible for service instantiation. Service injector invokes `$get` method, and if that dependes on another services than they are recursively resolved.
 
+It is not difficult to exctract DI component out of Angular. See [gist](https://gist.github.com/kykyev/8630948).
 
+<span id="note1">[1]&nbsp;</span>To handle source code minification Angular introduces special syntax. Injector's methods `invoke`, `instantiate` apart from common Javascript function also accepts special array.
+
+```javascript
+//source code minification will bloke this
+var sayHello = function($shell) {
+    $shell.log('Hello');
+};
+
+//this is bullet-proof against code minification
+var sayHello = ["$shell", function(shell) {
+    shell.log('Hello');
+}];
+```
