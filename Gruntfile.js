@@ -48,11 +48,12 @@ module.exports = function(grunt) {
         shell: {
             copyRelease: {
                 command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .;' +
-                         'cp -r dev/_posts/ .; cp dev/index.html .',
+                         'cp -r dev/_posts/ .; cp dev/index.html .;',
                 stdout: true
             },
             jekyllBuildDev: {
-                command: 'jekyll build --config _config.dev.yml',
+                command: 'jekyll build --config _config.dev.yml;' +
+                         'rm -rf _site.dev/assets;' + 'ln -s ../dev/assets _site.dev/assets;',
                 stdout: true
             },
             jekyllBuildRelease: {
@@ -88,9 +89,8 @@ module.exports = function(grunt) {
                 files: 'dev/sass/**/*.scss',
                 tasks: ['compass:dev']
             },
-            css: {
-                files: 'dev/assets/css/**/*.css',
-                tasks: ['copy:cssDev'],
+            assets: {
+                files: 'dev/assets/**/*.*',
                 options: {
                     livereload: true
                 }
