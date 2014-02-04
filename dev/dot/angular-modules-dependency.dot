@@ -1,0 +1,7 @@
+digraph G {
+    modA -> modB;
+    modA -> modC;
+    modB -> modD;
+    modB -> modE;
+    modC -> modE;
+}

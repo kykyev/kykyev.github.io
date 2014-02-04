@@ -117,7 +117,6 @@ function loadModules(modulesToLoad){
     return runBlocks;
   }
 ```
-Angular's modules are not for namespacing. Many modules may share common injector. So if module `modA` registers a service `servA`, then any other module that shares with `modA` the same injector can ask simply for `servA`.
 
 In the following example ([see fiddle](http://jsfiddle.net/kykyev/PTEUd/1/)) module `modA` is created. Third argument to `angular.module` is a configuration function that setups provider for '$shell' service. After everything is setup `runBlock` provided by `run` method is executed. It ask for a `$shell` service.
 
@@ -143,3 +142,7 @@ var modAInstance = angular.module("modA", [], function($provide) {
 
 angular.injector(["modA"]);
 ```
+
+Angular's modules are not for namespacing. Many modules may share common injector. So if module `modA` registers a service `servA`, then any other module that shares with `modA` the same injector can ask simply for `servA`.
+
+<img src="/assets/img/angular-modules-dependency.1c7de7df.svg">

@@ -145,4 +145,4 @@ angular.injector(["modA"]);
 
 Angular's modules are not for namespacing. Many modules may share common injector. So if module `modA` registers a service `servA`, then any other module that shares with `modA` the same injector can ask simply for `servA`.
 
-<img src="/assets/img/test.svg">
+<img src="/assets/img/angular-modules-dependency.svg">
