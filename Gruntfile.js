@@ -3,8 +3,16 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         // tasks
+        cssmin: {
+            minify: {
+                expand: true,
+                cwd: 'assets/css/',
+                src: ['*.css'],
+                dest: 'assets/css/'
+            }
+        },
         clean: {
-            release: ['assets/css/', '_layouts/', '_site.release']
+            release: ['assets/', '_layouts/', '_posts', '_site.release/', 'index.html']
         },
         compass: {
             dev: {
@@ -33,13 +41,14 @@ module.exports = function(grunt) {
             }
         },
         filerev: {
-            cssRelease: {
-                src: ['assets/css/main.css']
+            assetsRelease: {
+                src: ['assets/css/*.css', 'assets/img/*.*']
             }
         },
         shell: {
             copyRelease: {
-                command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .; cp dev/index.html .',
+                command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .;' +
+                         'cp -r dev/_posts/ .; cp dev/index.html .',
                 stdout: true
             },
             jekyllBuildDev: {
@@ -51,8 +60,18 @@ module.exports = function(grunt) {
                 stdout: true
             }
         },
+        svgmin: {
+            release: {
+                files: [{
+                    expand: true,
+                    cwd: 'assets/img',
+                    src: ['*.svg'],
+                    dest: 'assets/img/'
+                }]
+            }
+        },
         usemin: {
-            html: ['_layouts/default.html'],
+            html: ['_layouts/*.html', '_posts/*.markdown'],
             options: {
                 assetsDirs: ['.']
             }
@@ -108,6 +127,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-filerev');
     grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-svgmin');
     grunt.loadNpmTasks('grunt-usemin');
     grunt.loadNpmTasks('grunt-webfont');
 
@@ -119,10 +139,9 @@ module.exports = function(grunt) {
     grunt.registerTask('release', [
         'clean:release',
         'shell:copyRelease',
-        'useminPrepare',
-        'concat',
+        'filerev:assetsRelease',
         'cssmin',
-        'filerev:cssRelease',
+        'svgmin',
         'usemin',
         'shell:jekyllBuildRelease'
     ])
