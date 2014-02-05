@@ -3,8 +3,17 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         // tasks
+        cssmin: {
+            minify: {
+                expand: true,
+                cwd: 'assets/css/',
+                src: ['*.css'],
+                dest: 'assets/css/'
+            }
+        },
         clean: {
-            release: ['assets/css/', '_layouts/', '_site.release']
+            release: ['assets/', '_layouts/', '_posts', '_site.release/', 'index.html'],
+            develop: ['_site.dev/']
         },
         compass: {
             dev: {
@@ -33,17 +42,19 @@ module.exports = function(grunt) {
             }
         },
         filerev: {
-            cssRelease: {
-                src: ['assets/css/main.css']
+            assetsRelease: {
+                src: ['assets/css/*.css', 'assets/img/*.*']
             }
         },
         shell: {
             copyRelease: {
-                command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .; cp dev/index.html .',
+                command: 'cp -r dev/assets/ .; cp -r dev/_layouts/ .;' +
+                         'cp -r dev/_posts/ .; cp dev/index.html .;',
                 stdout: true
             },
             jekyllBuildDev: {
-                command: 'jekyll build --config _config.dev.yml',
+                command: 'jekyll build --config _config.dev.yml;' +
+                         'ln -s ../dev/assets _site.dev/assets;',
                 stdout: true
             },
             jekyllBuildRelease: {
@@ -51,8 +62,18 @@ module.exports = function(grunt) {
                 stdout: true
             }
         },
+        svgmin: {
+            release: {
+                files: [{
+                    expand: true,
+                    cwd: 'assets/img',
+                    src: ['*.svg'],
+                    dest: 'assets/img/'
+                }]
+            }
+        },
         usemin: {
-            html: ['_layouts/default.html'],
+            html: ['_layouts/*.html', '_posts/*.markdown'],
             options: {
                 assetsDirs: ['.']
             }
@@ -69,15 +90,14 @@ module.exports = function(grunt) {
                 files: 'dev/sass/**/*.scss',
                 tasks: ['compass:dev']
             },
-            css: {
-                files: 'dev/assets/css/**/*.css',
-                tasks: ['copy:cssDev'],
+            assets: {
+                files: 'dev/assets/**/*.*',
                 options: {
                     livereload: true
                 }
             },
             jekyllSource: {
-                files: ['dev/**/*.html', '_posts/**', '_config.yml'],
+                files: ['dev/**/*.html', 'dev/_posts/**', '_config.yml'],
                 tasks: ['shell:jekyllBuildDev'],
                 options: {
                     livereload: true
@@ -108,10 +128,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-filerev');
     grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-svgmin');
     grunt.loadNpmTasks('grunt-usemin');
     grunt.loadNpmTasks('grunt-webfont');
 
     grunt.registerTask('develop', [
+        'clean:develop',
         'shell:jekyllBuildDev',
         'connect',
         'watch'
@@ -119,10 +141,9 @@ module.exports = function(grunt) {
     grunt.registerTask('release', [
         'clean:release',
         'shell:copyRelease',
-        'useminPrepare',
-        'concat',
+        'filerev:assetsRelease',
         'cssmin',
-        'filerev:cssRelease',
+        'svgmin',
         'usemin',
         'shell:jekyllBuildRelease'
     ])
