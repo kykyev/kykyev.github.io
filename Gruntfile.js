@@ -12,7 +12,8 @@ module.exports = function(grunt) {
             }
         },
         clean: {
-            release: ['assets/', '_layouts/', '_posts', '_site.release/', 'index.html']
+            release: ['assets/', '_layouts/', '_posts', '_site.release/', 'index.html'],
+            develop: ['_site.dev/']
         },
         compass: {
             dev: {
@@ -53,7 +54,7 @@ module.exports = function(grunt) {
             },
             jekyllBuildDev: {
                 command: 'jekyll build --config _config.dev.yml;' +
-                         'rm -rf _site.dev/assets;' + 'ln -s ../dev/assets _site.dev/assets;',
+                         'ln -s ../dev/assets _site.dev/assets;',
                 stdout: true
             },
             jekyllBuildRelease: {
@@ -96,7 +97,7 @@ module.exports = function(grunt) {
                 }
             },
             jekyllSource: {
-                files: ['dev/**/*.html', '_posts/**', '_config.yml'],
+                files: ['dev/**/*.html', 'dev/_posts/**', '_config.yml'],
                 tasks: ['shell:jekyllBuildDev'],
                 options: {
                     livereload: true
@@ -132,6 +133,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-webfont');
 
     grunt.registerTask('develop', [
+        'clean:develop',
         'shell:jekyllBuildDev',
         'connect',
         'watch'
