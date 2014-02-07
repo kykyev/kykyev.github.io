@@ -1,0 +1,8 @@
+graph DOM {
+    html -- head;
+    html -- body;
+    head -- style;
+    body -- input;
+    body -- p;
+    p -- "#text";
+}
