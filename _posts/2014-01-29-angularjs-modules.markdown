@@ -18,12 +18,26 @@ function setupModuleLoader(window) {
     }
 }
 ```
-First call to `angular.module` will create a `moduleInstance` object and register it in internal `modules` cache. Subsequent calls will return that cached value.
+First call to `angular.module` will create a `moduleInstance` object and register it in internal `modules` cache. First argument is a module name, second - module's dependencies, optional third - configuration function. Well, actually second argument is also optional but being called with only one agrument `angular.module` function has different semantics. If module `aaa` is already registered than `angular.module("aaa")` returns cached module object. Otherwise it throws error.
+
+```javascript
+// first register modules
+angular.module("aaa", []);
+angular.module("bbb", []);
+angular.module("fff", ["aaa", "bbb"]);
+
+// now we can refer to them by name
+var fffModule = angular.module("fff");
+```
+
+Here is 'cleaned up' code of `angular.module`:
 
 ```javascript
 function module(name, requires, configFn) {
     return ensure(modules, name, function() {
-
+        if (!requires) {
+            throw ...;
+        }
         var invokeQueue = [];
         var runBlocks = [];
         var config = invokeLater('$injector', 'invoke');
@@ -42,13 +56,13 @@ function module(name, requires, configFn) {
     });
 }
 ```
-`invokeLater` function is to provide mechanism for a deferred function invocation. For example call `config(1, "a")` will put into internal `invokeQueue` array item that represents deferred function call. Somewhere in the future this information will allow to actually make call.
+Purpose of `invokeLater` function is to provide mechanism for a deferred function invocation. For example call `config(configFn)` will put into internal `invokeQueue` array item that represents deferred function call. Somewhere in the future this information will allow to actually make call.
 
 ```javascript
 // now
-["$injector", "invoke", [1, "a"]]
+["$injector", "invoke", configFn]
 // in the future
-$injector.invoke.apply($injector, [1, "a"])
+$injector.invoke.apply($injector, configFn)
 ```
 
 ```javascript
@@ -92,7 +106,7 @@ function createInjector(modulesToLoad) {
 }
 ```
 
-`loadModules` is a recursive function that visits modules in topological order. Remember that module can have one or more other modules as their dependencies. Each module's `invokeQueue` is executed in the "environment" of provider injector. So all configuration methods of module instance object can ask only for providers to be injected.
+`loadModules` is a recursive function that visits modules in topological order. Remember that module can have one or more other modules as their dependencies. Each module's `invokeQueue` is executed in the "environment" of provider injector. So all configuration methods of module instance object can ask only for providers to be injected. Here is simplified version of `loadModules` function that nevertheless catches main idea.
 
 ```javascript
 function loadModules(modulesToLoad){
