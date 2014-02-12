@@ -15,7 +15,24 @@ var injector = createInjector(modules);
 
 In ... it is described how case of `ng` is handled. Remember that every module has two different blocks of code associated with it - "config block" and "run block". `loadModules` first runs all config blocks and then all run blocks both in the same topological sort order.
 
-Apart from module name `loadModules` can handle and special array form as above. You can think of this as an degraded module case. Here "config block" is `function($provide) {...}` and "run block" is `undefined` value because first function returns nothing.
+Apart from module name `loadModules` can handle and special array form.
+
+```javascript
+modules.unshift(['$provide', function($provide) {
+  $provide.value('$rootElement', element);
+}]);
+```
+
+You can think about this as an degraded module case. Function body is executed during configuration phase. "Run block" is a return value of a function. In the example function returns `undefined` so "run block" is effectivly nothing. But we can write something like this:
+
+```javascript
+modules.unshift(['$foo', function($foo) {
+  return function () {
+    $foo.bar();
+  };
+}]);
+```
+
 
 ```javascript
 function loadModules(modulesToLoad){
