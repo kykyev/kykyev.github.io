@@ -3,8 +3,7 @@ layout: post
 title:  "Simplest example of Angular.js app"
 date:   2014-02-11 16:47:00
 ---
-
-
+{% raw %}
 ```html
 <html ng-app="demoApp">
     <head>
@@ -14,7 +13,7 @@ date:   2014-02-11 16:47:00
     <body>
         <div ng-controller="EchoController">
             <input type="text" ng-model="message">
-            <p>{{ message }}</p>
+            <p>{{message}}</p>
         </div>
     </body>
 </html>
@@ -98,4 +97,4 @@ function($scope) {
 
 and then `controllerInstance` is a object with a `pi` field.
 
-And only after all above is done linking of `<div ng-controller="EchoController">` and all it's descendants is started. Linking bidirectionally binds scope with a DOM. In our case these are `input` element and "\{\{ message \}\}" text node.
+And only after all above is done linking of `<div ng-controller="EchoController">` and all it's descendants is started. Linking bidirectionally binds scope with a DOM. In our case these are `input` element and "{{ message }}" text node.
