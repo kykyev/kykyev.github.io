@@ -4,6 +4,9 @@ title:  "Simplest example of Angular.js app"
 date:   2014-02-11 16:47:00
 ---
 {% raw %}
+
+Here is example of classic Angular.js demo app: [codepen](http://codepen.io/kykyev/pen/vCeGa). App is as simple as possible but a lot of is moving under the hood.
+
 ```html
 <html ng-app="demoApp">
     <head>
