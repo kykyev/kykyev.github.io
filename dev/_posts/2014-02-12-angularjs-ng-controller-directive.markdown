@@ -22,7 +22,7 @@ demoApp.controller('EchoController', function($scope) {
 });
 ```
 
-Built-in directives like `ng-controller` are registered during configuration of `ng` module. This is done by call to `directive` method of `$CompileProvider`. As one can expect `$CompileProvider` is a provider for a `$compile` service.
+Built-in directives like `ng-controller` are registered during configuration of `ng` module. This is done by call to `directive` method of `$CompileProvider`. As one can expect `$CompileProvider` is a provider for a `$compile` service. One might reason that every directive teaches compiler a new trick. Directives are working on a per DOM element level - they describe procedure how to attach some behavior to element or transform it. Job of compiler is to traverse whole DOM tree, find all directives, execute them and thus transform static HTML markup into live view.
 
 ```javascript
 angularModule('ng', ['ngLocale'])
@@ -51,11 +51,23 @@ var ngControllerDirective = [function() {
     priority: 500
   };
 }];
-
+// let's register `ngController` directive
 $compileProvider.directive('ngController', ngControllerDirective);
 ```
 
-Let's look under the hood of `directive` method. In it's closure it has `hasDirectives` cache object for storing already registered directives.  If cache doesn't contain key `ngController` then we register provider for `ngControllerDirective` service. Remember that `$provide.factory` is a special case of `$provide.provide` [see [1]](#note1). Service 'ngControllerDirective' has the same name as a directive factory 'ngControllerDirective' but they are different entities.
+Later it will be shown that directive factory is invoked by `$injector.invoke` which makes it injectable.
+
+```javascript
+var sampleDirectiveFactory = ["$Dependency", function($dep) {
+  return {
+    foo: $dep.isFoo()
+  };
+}];
+
+var directive = $injector.invoke(sampleDirectiveFactory);
+```
+
+Let's look under the hood of `directive` method. In it's closure it has `hasDirectives` cache object for storing already registered directives.  If cache doesn't contain key `ngController` then we register provider for `ngControllerDirective` service. Remember that `$provide.factory` is a special case of `$provide.provide` [see [1]](#note1). Service 'ngControllerDirective' has the same name as a directive factory 'ngControllerDirective' but strickly speaking they are different entities. We will see later that service constructor calls directive factory.
 
 ```javascript
 var hasDirectives = {};
@@ -66,7 +78,7 @@ this.directive = function registerDirective(name, directiveFactory) {
         hasDirectives[name] = [];
         $provide.factory(
             name + "Directive",
-            ['$injector', '$exceptionHandler', <serviceFactory>]
+            ['$injector', '$exceptionHandler', <service constructor>]
         );
       }
       hasDirectives[name].push(directiveFactory);
@@ -79,7 +91,7 @@ this.directive = function registerDirective(name, directiveFactory) {
 
 Strange case is that single directive can have several factories. Or if we register directive `foo` twice than `hasDirective['foo']` will be array with two identical factories. But for most cases there is one-to-one correspondence between directive and it's factory.
 
-Let's see what is going on inside \<serviceFactory\>. In case of `ngController` directive `hasDirectives['ngController']` is array of length one that contains directive factory. Being invoked by injector directive factory returns wrapped object.
+Let's see what is going on inside `<service constructor>`. In case of `ngController` directive `hasDirectives['ngController']` is array of length one that contains directive factory. Being invoked by injector directive factory returns wrapped object.
 
  ```javascript
  {
@@ -88,10 +100,10 @@ Let's see what is going on inside \<serviceFactory\>. In case of `ngController` 
     priority: 500
  }
  ```
- Not specified object's fields are set to default values. For instance, directive factory for `ngController` setups only three fields: 'scope', 'controller', 'priority'. All the rest fields such as 'require', 'restrict', e.t. are set to default values.
+ Not specified object's fields are set to default values. For instance, directive factory for `ngController` setups only three fields: `scope`, `controller`, `priority`. All the rest fields such as `require`, `restrict`, etc. are set to default values.
 
 ```javascript
-<serviceFactory> = function($injector, $exceptionHandler) {
+<service constructor> = function($injector, $exceptionHandler) {
     var directives = [];
     forEach(hasDirectives[name], function(directiveFactory, index) {
       try {
@@ -115,7 +127,7 @@ Let's see what is going on inside \<serviceFactory\>. In case of `ngController` 
   }]
 ```
 
-Function \<serviceFactory\> is called when we first time ask for a `ngControllerDirective` service. In Angular this is done during compilation process. Then compiler meets DOM element it collects directives associated with the element. Following code snippet is from `compileNodes` function.
+`<service constructor>` is called when we first time ask for a `ngControllerDirective` service. In Angular this is done during compilation process. When compiler encounters DOM element it collects directives associated with the element. Following code snippet is from `compileNodes` function.
 
 ```javascript
 var directives = collectDirectives(nodeList[i], [], attrs, i === 0 ? maxPriority : undefined,
@@ -136,7 +148,7 @@ addDirective(directives, "ngController", 'A', maxPriority, ignoreDirective, attr
                             attrEndName);
 ```
 
-`addDirective` asks for `ngControllerDirective` service. It is this time when \<serviceFactory\> is invoked.
+`addDirective` asks for `ngControllerDirective` service. It is this time when `<service constructor>` is invoked.
 
 ```javascript
 var directives = $injector.get("ngControllerDirective");
@@ -157,7 +169,7 @@ Debugging session:
 }]
 ```
 
-Collected directives are applied to DOM element.
+Collected directives are applied to DOM element. Metaphorically directives are baked with `nodeLinkFn` closure. So later on during linking when `nodeLinkFn` is called it has `directives` array in closure environment.
 
 ```javascript
 var nodeLinkFn = applyDirectivesToNode(directives, nodeList[i], ...);
@@ -169,7 +181,7 @@ function applyDirectivesToNode(...) {
 }
 ```
 
-After compilation phase it is turn for linking. Here is a fragment from `compositeLinkFn` that relevant to controller directive. New scope object is assotiated with \<div ng-controller="EchoController"\> element and this scope is inherited by all descendants of `div` element. This `*LinkFn` stuff is tricky - see dedicated [post](/2014/02/06/angularjs-compilation.html).
+After compilation phase it is turn for linking. Here is a fragment from `compositeLinkFn` that relevant to controller directive. New scope object is associated with `<div ng-controller="EchoController">` element and this scope is inherited by all descendants of `div` element - `input` and `p` in our case. This `*LinkFn` stuff is tricky - see [Compilation process in Angular.js](/2014/02/06/angularjs-compilation.html) for information.
 
 ```javascript
 // nodeList=[<div ng-controller="EchoController">]
@@ -179,7 +191,7 @@ function compositeLinkFn(scope, nodeList, ...) {
             childScope = scope.$new();
             $node.data('$scope', childScope);
         }
-        // nodeList=<div ng-controller="EchoController">
+        // node=<div ng-controller="EchoController">
         // childLinkFn= composite link function for child
         // elements of <div ng-controller="EchoController">
         // see dedicated post about compilation and linking
@@ -234,14 +246,14 @@ function nodeLinkFn(childLinkFn, scope, linkNode, ...) {
 }
 ```
 
-Finally about `$controller`. One can guess that this is a service that deals with delivering actuall controller function by it's name. For more info see [this post](/2014/02/11/angularjs-simplest-app-example.html).
+Finally about `$controller`. One can guess that this is a service that deals with delivering actuall controller function by it's name. That is `$controller` is a return value of `$ControllerProvider.$get`. That return value is `function(expression, locals)` - function that basically finds controller by expression like `EchoController` and executes it in `locals` environment.   For more info see [Simplest example of Angular.js app](/2014/02/11/angularjs-simplest-app-example.html).
 
 ```javascript
 controllerInstance = $controller(controller, locals);
 ```
 
 
-<div id="note1">[1] factory is a special case of provider</div>
+<div id="note1">[1] factory is a special case of provider with one method - `$get` service constructor</div>
 ```javascript
 function factory(name, factoryFn) {
     return provider(name, { $get: factoryFn });
