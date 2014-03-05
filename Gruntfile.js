@@ -53,7 +53,7 @@ module.exports = function(grunt) {
                 stdout: true
             },
             jekyllBuildDev: {
-                command: 'jekyll build --config _config.dev.yml;' +
+                command: 'jekyll build --config _config.dev.yml --drafts;' +
                          'ln -s ../dev/assets _site.dev/assets;',
                 stdout: true
             },
@@ -97,7 +97,7 @@ module.exports = function(grunt) {
                 }
             },
             jekyllSource: {
-                files: ['dev/**/*.html', 'dev/_posts/**', '_config.yml'],
+                files: ['dev/**/*.html', 'dev/_posts/**', 'dev/_drafts/**', '_config.yml'],
                 tasks: ['shell:jekyllBuildDev'],
                 options: {
                     livereload: true
