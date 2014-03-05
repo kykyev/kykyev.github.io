@@ -100,7 +100,7 @@
   color: #2AA198;
 }
 .highlight .na {
-  color: #93A1A1;
+  color: silver;
 }
 .highlight .nb {
   color: #B58900;
@@ -130,7 +130,7 @@
   color: #93A1A1;
 }
 .highlight .nx {
-  color: #93A1A1;
+  color: silver;
 }
 .highlight .py {
   color: #93A1A1;
@@ -169,7 +169,7 @@
   color: #93A1A1;
 }
 .highlight .s2 {
-  color: #2AA198;
+  color: #35B5AB;
 }
 .highlight .se {
   color: #CB4B16;
@@ -187,7 +187,7 @@
   color: #DC322F;
 }
 .highlight .s1 {
-  color: #2AA198;
+  color: #35B5AB;
 }
 .highlight .ss {
   color: #2AA198;
@@ -211,4 +211,11 @@
 .highlight pre {
   background-color: #002B36;
   padding: 9px 15px;
+}
+
+.highlight code {
+  white-space: pre-wrap;
+  background: none;
+  font-size: 100%;
+  color: silver;
 }
