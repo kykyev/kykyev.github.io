@@ -18,7 +18,7 @@ function setupModuleLoader(window) {
     }
 }
 ```
-First call to `angular.module` will create a `moduleInstance` object and register it in internal `modules` cache. First argument is a module name, second - module's dependencies, optional third - configuration function. Well, actually second argument is also optional but being called with only one agrument `angular.module` function has different semantics. If module `aaa` is already registered than `angular.module("aaa")` returns cached module object. Otherwise it throws error.
+First call to `angular.module` will create a `moduleInstance` object and register it in internal `modules` cache. First argument is a module name, second - module's dependencies (that is another modules), optional third - configuration function. Well, actually second argument is also optional but being called with only one agrument `angular.module` function has different semantics. If module `aaa` is already registered than `angular.module("aaa")` returns cached module object, otherwise it throws error.
 
 ```javascript
 // first register modules
@@ -30,7 +30,7 @@ angular.module("fff", ["aaa", "bbb"]);
 var fffModule = angular.module("fff");
 ```
 
-Here is 'cleaned up' code of `angular.module`:
+Here is 'cleaned up' source code of `angular.module`:
 
 ```javascript
 function module(name, requires, configFn) {
@@ -157,8 +157,59 @@ var modAInstance = angular.module("modA", [], function($provide) {
 angular.injector(["modA"]);
 ```
 
-Angular's modules are not for namespacing. Many modules may share common injector. So if module `modA` registers a service `servA`, then any other module that shares with `modA` the same injector can ask simply for `servA`.
+Angular.js modules are not for namespaces, but for structuring of application. Many modules may share common injector thus introducing some kind of global space. So if module `modA` registers a service `servA`, then any other module that shares with `modA` the same injector can ask simply for `servA`.
 
 <div class="illustration">
     <img class="illustration__img" src="/assets/img/angular-modules-dependency.1c7de7df.svg">
+    <p>Possible module dependency graph</p>
 </div>
+
+Typical Angular.js application has one main module that may optionally depend on helper modules that provide some specific functionality. Main module is declared in HTML markup by `ng-app` attribute. This allows Angular.js to catch up user defined modules and execute them in the context of the same injector that is used be built-in modules.
+
+Here is demo example:
+
+```html
+<html ng-app="superApp">
+    ...
+</html>
+```
+
+```javascript
+var modules, key;
+
+modules = {
+    superApp: angular.module('superApp', ['modA', 'modB']),
+        modA: angular.module('modA', ['modC']),
+        modB: angular.module('modB', []),
+        modC: angular.module('modC', ['modB'])
+};
+
+for (key in modules) {
+    modules[key].config((function() {
+      var _key = key;
+      return function () {
+        console.log("Configuring " + _key);
+      };
+    })());
+
+    modules[key].run((function() {
+      var _key = key;
+      return function () {
+        console.log("Initializing " + _key);
+      };
+    })());
+}
+```
+
+You will see following console output. It's order perfectly corresponds to module dependency graph.
+
+```
+Configuring modB
+Configuring modC
+Configuring modA
+Configuring superApp
+Initializing modB
+Initializing modC
+Initializing modA
+Initializing superApp
+```

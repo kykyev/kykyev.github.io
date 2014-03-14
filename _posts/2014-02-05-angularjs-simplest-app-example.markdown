@@ -39,7 +39,7 @@ jqLite(document).ready(function() {
 });
 ```
 
-Then `app.js` script runs. It creates module `demoApp` and instructs it to register `EchoController` controller later. Actual registration will be done during module's configuration phase. See [post](/2014/01/27/angularjs-modules.html) about modules for more info.
+Then `app.js` script runs. It creates module `demoApp` and instructs it to register `EchoController` controller later. Actual registration of the controller will be done during module's configuration phase. See [post](/2014/01/27/angularjs-modules.html) about modules for more info.
 
 ```javascript
 var demoApp = angular.module('demoApp', []);
@@ -48,7 +48,7 @@ demoApp.controller('EchoController', function($scope) {
 });
 ```
 
-Now we wait until DOM is ready when app bootstraping is kicked off. During bootstrap process modules are configured and initialized by their run blocks. It is during `demoApp` module configuration when `EchoController` is registered:
+Now we wait until DOM is ready when app bootstrap is kicked off. During bootstrap process modules are configured and initialized by their run blocks. It is during `demoApp` module configuration when `EchoController` is registered:
 
 ```javascript
 $controllerProvider.register('EchoConroller', function($tscope) {
@@ -56,9 +56,50 @@ $controllerProvider.register('EchoConroller', function($tscope) {
 });
 ```
 
-Note that in this phase typically we should not access DOM, as it will be transformed later by compilation and linking.
+Actual bootstrap algorithm is following:
 
-Finally everything is ready to start compilation and subsequent linking. Compiler handles nodes with `compileNodes` function that collects directives declarations, e.g `ng-controller="EchoController"`. Directive is nothing more than kind of service, for example `ngConroller` directive maps into `ngControllerDirective` service. Just like every service, `ngControllerDirective` has corresponding `ngControllerDirectiveProvider` provider.
+1. Function `angularInit` extracts value of HTML `ng-app` attribute - `demoApp` in example. This is user defined root module that represents app. Finally `angularInit` makes call to `bootstrap`:
+
+  ```javascript
+    // appElement = html root element in our example
+    // module = "demoApp"
+    bootstrap(appElement, module ? [module] : []);
+  ```
+
+2. Function `bootstrap` augment `modules` array with built-in module `ng`:
+
+  ```javascript
+    modules.unshift(['$provide', function($provide) {
+      $provide.value('$rootElement', element);
+    }]);
+    modules.unshift('ng');
+  ```
+
+  Then all modules are configured and initialized in the context of the same injector:
+
+  ```javascript
+    var injector = createInjector(modules);
+  ```
+
+3. Lastly `bootstrap` function kicks off DOM compilation:
+
+  ```javascript
+    injector.invoke(['$rootScope', '$rootElement', '$compile', '$injector', '$animate',
+       function(scope, element, compile, injector, animate) {
+        scope.$apply(function() {
+          element.data('$injector', injector);
+          compile(element)(scope);
+        });
+      }]
+    );
+  ```
+
+  By the way default injector can be later accessed as `$injector` attribute of `html` root element. That can be necessary some other modules are introduced in the context of their own injector that doesn't know about services from `ng` and `demoApp` modules. That's why you will need to directly call default injector.
+
+Compilation and linking
+-----------------------
+
+Compiler handles nodes with `compileNodes` function that collects directives declarations, e.g `ng-controller="EchoController"`. Directive is nothing more than kind of service, for example `ngConroller` directive maps into `ngControllerDirective` service. Just like every service, `ngControllerDirective` has corresponding `ngControllerDirectiveProvider` provider.
 
 Now to the linking. During that phase (`nodeLinkFn` function) `$controller` service instantiates `EchoController`.
 

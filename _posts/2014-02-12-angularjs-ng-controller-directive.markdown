@@ -127,6 +127,8 @@ Let's see what is going on inside `<service constructor>`. In case of `ngControl
   }]
 ```
 
+To summarize, each directive `foo` has injectable factory function `fooDirective`. Moreover, each directive `foo` has corresponding service with the same name `fooDirective`.
+
 `<service constructor>` is called when we first time ask for a `ngControllerDirective` service. In Angular this is done during compilation process. When compiler encounters DOM element it collects directives associated with the element. Following code snippet is from `compileNodes` function.
 
 ```javascript
