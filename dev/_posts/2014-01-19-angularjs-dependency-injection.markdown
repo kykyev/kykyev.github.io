@@ -4,7 +4,7 @@ title:  "Angular.js dependency injection"
 date:   2014-01-19 22:48:00
 ---
 
-Say, for some reason we do not want use `window.console` directly and instead use wrapping `$shell` service.
+Say, for some reason we do not want use `window.console` directly and instead use `$shell` service that somehow wraps `window.console`.
 
 ```javascript
 var sayHello = function($shell) {
